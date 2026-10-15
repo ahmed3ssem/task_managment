@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../feature/tasks/presentation/tasks_managment_screen.dart';
+import '../../feature/tasks/presentation/screen/tasks_managment_screen.dart';
 
 class Routes {
   static const String initialRoutes = '/';

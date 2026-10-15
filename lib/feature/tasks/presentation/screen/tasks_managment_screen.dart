@@ -8,13 +8,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../config/theme/styles.dart';
-import '../../../config/theme/theme_helper.dart';
-import '../../../core/utils/app_colors.dart';
-import '../../../core/utils/local_strings.dart';
-import '../data/models/task_category_model.dart';
-import 'widgets/task_category_cell.dart';
-import 'widgets/task_search_bar.dart';
+import '../../../../config/theme/styles.dart';
+import '../../../../config/theme/theme_helper.dart';
+import '../../../../core/utils/app_colors.dart';
+import '../../../../core/utils/local_strings.dart';
+import '../../data/models/task_category_model.dart';
+import '../widgets/task_category_cell.dart';
+import '../widgets/task_search_bar.dart';
 
 /// [TasksManagmentScreen] is the entry view for managing and tracking tasks.
 ///

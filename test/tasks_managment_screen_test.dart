@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_project_structure/config/PrefHelper/prefs.dart';
 import 'package:flutter_project_structure/core/utils/local_strings.dart';
-import 'package:flutter_project_structure/feature/tasks/presentation/tasks_managment_screen.dart';
+import 'package:flutter_project_structure/feature/tasks/presentation/screen/tasks_managment_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
