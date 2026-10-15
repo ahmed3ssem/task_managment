@@ -77,20 +77,31 @@ void main() {
     // Verify Search Bar exists with localized hint
     expect(find.text(LocalStrings.search), findsOneWidget);
 
-    // Enter search text
+    // 1. Enter search text matching existing board by name
     final searchField = find.byType(TextField);
-    await tester.enterText(searchField, 'Design UI');
+    await tester.enterText(searchField, 'Mobile App Architecture');
     await tester.pumpAndSettle();
 
-    expect(find.text('Design UI'), findsOneWidget);
-    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+    expect(find.text('Mobile App Architecture'), findsOneWidget);
 
-    // Tap clear button to reset search
-    await tester.tap(find.byIcon(Icons.close_rounded));
+    // 2. Search for non-existent name -> triggers empty state
+    await tester.enterText(searchField, 'Non Existent Board Name');
     await tester.pumpAndSettle();
 
-    expect(find.text('Design UI'), findsNothing);
-    expect(find.byIcon(Icons.close_rounded), findsNothing);
+    expect(find.text(LocalStrings.noMatchingResults), findsOneWidget);
+
+    // 3. Tap clear ('X') button in search bar to reset search and retrieve all items
+    final searchBarClearBtn = find.descendant(
+      of: find.byType(TextField),
+      matching: find.byIcon(Icons.close_rounded),
+    );
+    // Find close icon inside suffixIcon of TextField
+    final clearIcon = find.byIcon(Icons.close_rounded).first;
+    await tester.tap(clearIcon);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Non Existent Board Name'), findsNothing);
+    expect(find.text('Board Name'), findsOneWidget);
 
     // Verify Action Buttons
     expect(find.text(LocalStrings.filter), findsOneWidget);

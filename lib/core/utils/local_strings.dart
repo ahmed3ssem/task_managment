@@ -54,9 +54,15 @@ class LocalStrings {
   static String get apply => 'apply'.tr;
   static String get selectDate => 'selectDate'.tr;
   static String get selectAtLeastOneFilter => 'selectAtLeastOneFilter'.tr;
+  static String get noMatchingResults => 'noMatchingResults'.tr;
+  static String get noResultsDescription => 'noResultsDescription'.tr;
+  static String get clearSearch => 'clearSearch'.tr;
 }
 
 mixin AppLocale {
+  static const String noMatchingResults = 'noMatchingResults';
+  static const String noResultsDescription = 'noResultsDescription';
+  static const String clearSearch = 'clearSearch';
   static const String owningStatus = 'owningStatus';
   static const String reset = 'reset';
   static const String apply = 'apply';
@@ -141,6 +147,9 @@ mixin AppLocale {
     apply: "تطبيق",
     selectDate: "اختر التاريخ",
     selectAtLeastOneFilter: "يرجى اختيار معيار تصفية واحد على الأقل",
+    noMatchingResults: "لا توجد نتائج مطابقة",
+    noResultsDescription: "حاول البحث باستخدام اسم لوحة آخر",
+    clearSearch: "مسح البحث",
   };
 
   static const Map<String, dynamic> EN = {
@@ -150,6 +159,9 @@ mixin AppLocale {
     apply: "Apply",
     selectDate: "Select Date",
     selectAtLeastOneFilter: "Please select at least one filter",
+    noMatchingResults: "No matching results found",
+    noResultsDescription: "Try searching with a different board name",
+    clearSearch: "Clear Search",
     noData: "There is no data",
     english: "Proceed With English",
     arabic: "Proceed With Arabic",

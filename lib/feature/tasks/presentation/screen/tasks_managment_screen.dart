@@ -2,9 +2,10 @@
 // File: tasks_managment_screen.dart
 // Description: Main task management screen.
 //              Fetches and displays real-time boards from Firebase Realtime Database,
-//              renders dynamic category counts in TaskCategoryCell, supports
-//              search filtering, and shows an empty state ("Nothing to show yet")
-//              when no boards exist.
+//              renders dynamic category counts in TaskCategoryCell (excluding 0-count items),
+//              supports full search filtering and advanced Filter Modal Bottom Sheet
+//              (Creation Date, Department, Owning Status), and shows an empty state
+//              ("Nothing to show yet") when no boards match.
 // ============================================================================
 
 import 'dart:async';
@@ -12,6 +13,7 @@ import 'package:dartz/dartz.dart' hide State;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../config/theme/styles.dart';
 import '../../../../config/theme/theme_helper.dart';
@@ -28,6 +30,7 @@ import '../../domain/usecases/get_boards_usecase.dart';
 import '../cubit/tasks_cubit.dart';
 import '../cubit/tasks_state.dart';
 import '../widgets/create_board_bottom_sheet.dart';
+import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/task_action_buttons_row.dart';
 import '../widgets/task_board_card.dart';
 import '../widgets/task_category_cell.dart';
@@ -237,6 +240,9 @@ class _TasksManagmentViewState extends State<TasksManagmentView> {
   /// Exposes the active search query.
   String get searchQuery => _searchQuery;
 
+  /// Holds the currently active filter criteria applied from FilterBottomSheet.
+  TaskFilterCriteria? _appliedFilter;
+
   // --------------------------------------------------------------------------
   // Lifecycle Management
   // --------------------------------------------------------------------------
@@ -259,9 +265,12 @@ class _TasksManagmentViewState extends State<TasksManagmentView> {
   }
 
   /// Triggered when the close ('X') button is tapped in the search bar.
+  /// Resets search query, controller, and displays all boards.
   void _onSearchCleared() {
     setState(() {
       _searchQuery = '';
+      _searchController.clear();
+      _selectedCategoryIndex = 0;
     });
   }
 
@@ -269,74 +278,74 @@ class _TasksManagmentViewState extends State<TasksManagmentView> {
   // Dynamic Category Calculation & Filtering
   // --------------------------------------------------------------------------
 
-  /// Checks if a board's department matches a specific category ID.
-  bool _matchesDepartment(String department, String categoryId) {
-    final dep = department.trim().toLowerCase();
-    switch (categoryId) {
-      case 'marketing':
-        return dep == 'marketing' ||
-            dep == LocalStrings.marketing.toLowerCase();
-      case 'software':
-        return dep == 'software' || dep == LocalStrings.software.toLowerCase();
-      case 'finance':
-        return dep == 'finance' || dep == LocalStrings.finance.toLowerCase();
-      case 'research_and_development':
-        return dep.contains('research') ||
-            dep.contains('development') ||
-            dep.contains('r&d') ||
-            dep == LocalStrings.researchAndDevelopment.toLowerCase();
-      default:
-        return false;
-    }
-  }
-
   /// Dynamically computes category counts from the current boards list.
+  /// Shows ONLY departments existing in Firebase with count > 0.
   List<TaskCategoryModel> _getCategories(
     BuildContext context,
     List<TaskBoardModel> allBoards,
   ) {
-    final int allCount = allBoards.length;
-    final int marketingCount = allBoards
-        .where((b) => _matchesDepartment(b.department, 'marketing'))
-        .length;
-    final int softwareCount = allBoards
-        .where((b) => _matchesDepartment(b.department, 'software'))
-        .length;
-    final int financeCount = allBoards
-        .where((b) => _matchesDepartment(b.department, 'finance'))
-        .length;
-    final int rndCount = allBoards
-        .where(
-          (b) => _matchesDepartment(b.department, 'research_and_development'),
-        )
-        .length;
-
-    return [
-      TaskCategoryModel(id: 'all', title: LocalStrings.all, count: allCount),
+    final List<TaskCategoryModel> categories = [
       TaskCategoryModel(
-        id: 'marketing',
-        title: LocalStrings.marketing,
-        count: marketingCount,
-      ),
-      TaskCategoryModel(
-        id: 'software',
-        title: LocalStrings.software,
-        count: softwareCount,
-      ),
-      TaskCategoryModel(
-        id: 'finance',
-        title: LocalStrings.finance,
-        count: financeCount,
-      ),
-      TaskCategoryModel(
-        id: 'research_and_development',
-        title: LocalStrings.researchAndDevelopment,
-        count: rndCount,
+        id: 'all',
+        title: LocalStrings.all,
+        count: allBoards.length,
       ),
     ];
+
+    // Gather unique departments present in allBoards
+    final Map<String, int> deptCounts = {};
+    for (final board in allBoards) {
+      final dept = board.department.trim();
+      if (dept.isNotEmpty) {
+        deptCounts[dept] = (deptCounts[dept] ?? 0) + 1;
+      }
+    }
+
+    // Add only departments with count > 0 (excluding 0-count items)
+    deptCounts.forEach((deptName, count) {
+      if (count > 0) {
+        String localizedTitle = deptName;
+        final lower = deptName.toLowerCase();
+        if (lower == 'marketing') {
+          localizedTitle = LocalStrings.marketing;
+        } else if (lower == 'software') {
+          localizedTitle = LocalStrings.software;
+        } else if (lower == 'finance') {
+          localizedTitle = LocalStrings.finance;
+        } else if (lower.contains('research') ||
+            lower.contains('development')) {
+          localizedTitle = LocalStrings.researchAndDevelopment;
+        }
+
+        categories.add(
+          TaskCategoryModel(
+            id: deptName.toLowerCase(),
+            title: localizedTitle,
+            count: count,
+          ),
+        );
+      }
+    });
+
+    return categories;
   }
 
-  /// Filters boards by currently selected category tab and search query string.
+  /// Extracts unique department names for the Filter dropdown.
+  List<String> _getAvailableDepartments(List<TaskBoardModel> allBoards) {
+    final Set<String> depts = {};
+    for (final board in allBoards) {
+      final dept = board.department.trim();
+      if (dept.isNotEmpty) {
+        depts.add(dept);
+      }
+    }
+    if (depts.isEmpty) {
+      return const ['Marketing'];
+    }
+    return depts.toList();
+  }
+
+  /// Filters boards by currently selected category tab, search query, and applied filter.
   List<TaskBoardModel> _getFilteredBoards(
     List<TaskBoardModel> allBoards,
     List<TaskCategoryModel> categories,
@@ -347,24 +356,55 @@ class _TasksManagmentViewState extends State<TasksManagmentView> {
     final activeCategory = categories[_selectedCategoryIndex];
 
     return allBoards.where((board) {
-      // 1. Category Filter
+      // 1. Category Filter (match department or show all)
       final bool matchesCategory;
       if (activeCategory.id == 'all') {
         matchesCategory = true;
       } else {
-        matchesCategory = _matchesDepartment(
-          board.department,
-          activeCategory.id,
-        );
+        matchesCategory =
+            board.department.trim().toLowerCase() ==
+            activeCategory.id.toLowerCase();
       }
 
-      // 2. Search Query Filter (match board name or department)
+      // 2. Search Query Filter: searches strictly through boards by name
+      final query = _searchQuery.trim().toLowerCase();
       final matchesSearch =
-          _searchQuery.isEmpty ||
-          board.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          board.department.toLowerCase().contains(_searchQuery.toLowerCase());
+          query.isEmpty || board.name.trim().toLowerCase().contains(query);
 
-      return matchesCategory && matchesSearch;
+      // 3. Applied Filter Criteria (Creation Date, Department, Owning Status)
+      bool matchesAppliedFilter = true;
+      if (_appliedFilter != null && _appliedFilter!.isNotEmpty) {
+        // Date match
+        if (_appliedFilter!.creationDate != null) {
+          final filterDateStr = DateFormat(
+            'd MMM yyyy',
+          ).format(_appliedFilter!.creationDate!);
+          final boardDate = board.creationDate.trim().toLowerCase();
+          if (!boardDate.contains(filterDateStr.toLowerCase())) {
+            matchesAppliedFilter = false;
+          }
+        }
+
+        // Department match
+        if (_appliedFilter!.department != null &&
+            _appliedFilter!.department!.isNotEmpty) {
+          if (board.department.trim().toLowerCase() !=
+              _appliedFilter!.department!.trim().toLowerCase()) {
+            matchesAppliedFilter = false;
+          }
+        }
+
+        // Owning Status match
+        if (_appliedFilter!.owningStatus != null &&
+            _appliedFilter!.owningStatus!.isNotEmpty) {
+          if (board.role.trim().toLowerCase() !=
+              _appliedFilter!.owningStatus!.trim().toLowerCase()) {
+            matchesAppliedFilter = false;
+          }
+        }
+      }
+
+      return matchesCategory && matchesSearch && matchesAppliedFilter;
     }).toList();
   }
 
@@ -411,7 +451,7 @@ class _TasksManagmentViewState extends State<TasksManagmentView> {
               allBoards = const [];
             }
 
-            // Calculate categories with real item counts
+            // Calculate categories with real item counts (only count > 0)
             final categories = _getCategories(context, allBoards);
             final filteredBoards = _getFilteredBoards(allBoards, categories);
 
@@ -464,8 +504,19 @@ class _TasksManagmentViewState extends State<TasksManagmentView> {
                 Padding(
                   padding: EdgeInsetsDirectional.symmetric(horizontal: 24.w),
                   child: TaskActionButtonsRow(
-                    onFilterTap: () {
-                      // Filter modal (design implemented)
+                    onFilterTap: () async {
+                      final result = await FilterBottomSheet.show(
+                        context,
+                        initialFilter: _appliedFilter,
+                        availableDepartments: _getAvailableDepartments(
+                          allBoards,
+                        ),
+                      );
+                      if (result != null && mounted) {
+                        setState(() {
+                          _appliedFilter = result.isEmpty ? null : result;
+                        });
+                      }
                     },
                     onCreateBoardTap: () async {
                       await CreateBoardBottomSheet.show<TaskBoardModel>(
@@ -594,8 +645,24 @@ class _TasksManagmentViewState extends State<TasksManagmentView> {
     );
   }
 
-  /// Renders a dedicated empty state widget with the prompt "Nothing to show yet".
+  /// Renders a dedicated empty state widget.
+  /// If searching, displays "No matching results found" with a prompt and Clear Search button.
+  /// If general empty list, displays "Nothing to show yet".
   Widget _buildEmptyState(BuildContext context, bool isDark) {
+    final bool isSearching = _searchQuery.trim().isNotEmpty;
+
+    final IconData icon = isSearching
+        ? Icons.search_off_rounded
+        : Icons.inbox_outlined;
+
+    final String title = isSearching
+        ? LocalStrings.noMatchingResults
+        : LocalStrings.nothingToShowYet;
+
+    final String subtitle = isSearching
+        ? LocalStrings.noResultsDescription
+        : LocalStrings.noData;
+
     return Center(
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -618,7 +685,7 @@ class _TasksManagmentViewState extends State<TasksManagmentView> {
                   ),
                 ),
                 child: Icon(
-                  Icons.inbox_outlined,
+                  icon,
                   size: 38.sp,
                   color: isDark
                       ? AppColors.darkTextSecondary
@@ -627,7 +694,7 @@ class _TasksManagmentViewState extends State<TasksManagmentView> {
               ),
               SizedBox(height: 16.h),
               Text(
-                LocalStrings.nothingToShowYet,
+                title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18.sp,
@@ -640,7 +707,7 @@ class _TasksManagmentViewState extends State<TasksManagmentView> {
               ),
               SizedBox(height: 6.h),
               Text(
-                LocalStrings.enterBoardDescription,
+                subtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13.sp,
@@ -650,6 +717,28 @@ class _TasksManagmentViewState extends State<TasksManagmentView> {
                   fontFamily: TextStyles.textLarge.fontFamily,
                 ),
               ),
+              if (isSearching) ...[
+                SizedBox(height: 16.h),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    _searchController.clear();
+                    _onSearchCleared();
+                  },
+                  icon: Icon(Icons.close_rounded, size: 18.sp),
+                  label: Text(LocalStrings.clearSearch),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: AppColors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 8.h,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

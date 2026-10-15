@@ -75,9 +75,20 @@ This document captures the current architecture, implemented features, design de
    - **Save CTA**: Styled in brand green (`AppColors.primaryColor`), validates form, triggers `TasksCubit.createBoard(...)`, displays loading spinner, shows floating SnackBar on success, and dismisses modal.
 4. **`screen/tasks_managment_screen.dart`**:
    - Provides `TasksCubit` via `BlocProvider` and starts `watchBoards()`.
-   - **Dynamic `TaskCategoryCell` counts**: Computes "All" total count and department counts ("Marketing", "Software", "Finance", "Research & Development") in real time.
-   - **Empty State**: Shows dedicated empty state with `"Nothing to show yet"` (`LocalStrings.nothingToShowYet`) when data is empty.
+   - **Dynamic `TaskCategoryCell` counts**: Shows ONLY departments that exist in Firebase Realtime Database with item count > 0 (if only Marketing exists, only "All" and "Marketing" are shown; 0-count items are excluded).
+   - **Search by Board Name**: Filters the boards ListView dynamically by board name (`board.name`). If matches are found, they are displayed. If no matches exist, renders a dedicated empty state with localized prompt (`LocalStrings.noMatchingResults`) and a "Clear Search" button.
+   - **Clear Search Restoration**: Clicking the 'X' icon inside `TaskSearchBar` (or the "Clear Search" action) immediately clears the query, resets the category tab to "All", and retrieves all boards from Firebase.
+   - **Filter Modal Integration**: Tapping the Filter button opens `FilterBottomSheet` allowing filtering by Creation Date, Department, and Owning Status ("Owner"), with Reset and Apply actions.
+   - **Empty State**: Shows dedicated empty state with `"Nothing to show yet"` (`LocalStrings.nothingToShowYet`) when no boards exist in Firebase, or `"No matching results found"` when a search has no results.
    - Pull-to-refresh integration via `RefreshIndicator`.
+
+5. **`widgets/filter_bottom_sheet.dart`**:
+   - **Design & Layout**: Rounded top corners (`20.r`), 30x30 grey circular badge (`#9E9E9E`) with `Icons.tune_rounded`, title, close button, and generous bottom clearance (`systemBottomPadding` + `SafeArea`) ensuring neither button is cut off.
+   - **Creation Date**: Tap triggers `showDatePicker` calendar dialog and displays formatted date (`d MMM yyyy`).
+   - **Department**: Dropdown dynamically populated with departments currently existing in Firebase RTDB.
+   - **Owning Status**: Dropdown strictly with `"Owner"` option.
+   - **Reset CTA**: Clears selections. If a filter was actively applied, dismisses the bottom sheet and restores all Firebase items on the screen.
+   - **Apply CTA**: Styled in brand primary green (`AppColors.primaryColor`) with white text (matching "Create Board" button). Validates that at least one criterion (Date, Department, or Owning Status) is selected. Displays a localized warning toast if none selected. Upon validation, applies criteria to the ListView and closes the sheet.
 
 ---
 
@@ -92,8 +103,11 @@ This document captures the current architecture, implemented features, design de
 3. **`TaskActionButtonsRow` (`lib/feature/tasks/presentation/widgets/task_action_buttons_row.dart`)**:
    - Proportional 2:3 responsive ratio for mobile (`Expanded(flex: 2)` Filter + `Expanded(flex: 3)` Create Board).
    - "Create Board" button styled in brand primary green `#568F22`.
+   - "Filter" button wired to trigger `FilterBottomSheet.show(...)`.
 4. **`TaskBoardCard` (`lib/feature/tasks/presentation/widgets/task_board_card.dart`)**:
    - Card displaying board name, primary green department label, amber "Owner" role pill, multiline description, creation date, and overlapping avatar stack.
+5. **`FilterBottomSheet` (`lib/feature/tasks/presentation/widgets/filter_bottom_sheet.dart`)**:
+   - Bottom sheet for multi-criteria filtering (Creation date, department, owning status) with Reset and Apply controls.
 
 ---
 
@@ -113,19 +127,19 @@ All feature dependencies are registered via GetIt:
 ## 6. Tests Status
 
 - **`test/widget_test.dart`**: Verifies `TaskCategoryCell` interaction.
-- **`test/tasks_managment_screen_test.dart`**: Tests `TasksManagmentScreen` AppBar, category filter scrolling, search input typing, clear button, and list rendering.
-- **`test/create_board_test.dart`**:
-  - `TasksCubit` state transitions (`TasksInitial`, `CreateBoardLoading`, `CreateBoardSuccess`, `CreateBoardError`).
-  - `CreateBoardBottomSheet` modal launch, validation triggers on empty fields, dropdown selection, successful save, and UI list prepending.
-- **Result**: All tests pass (`flutter test`: 6 passed).
+- **`test/tasks_managment_screen_test.dart`**: Tests `TasksManagmentScreen` AppBar, dynamic category filter, search input typing, clear button, and list rendering.
+- **`test/create_board_test.dart`**: Tests `TasksCubit` state transitions and `CreateBoardBottomSheet` form validation and board creation.
+- **`test/filter_board_test.dart`**: Tests `FilterBottomSheet` modal opening, empty filter validation warning, department filtering in the ListView, and reset behavior restoring all items.
+- **`test/search_board_test.dart`**: Tests searching boards strictly by name, empty state validation on non-existent board, and restoration of all items via 'X' icon and "Clear Search" button.
+- **Result**: All tests pass (`flutter test`: 8 passed).
 
 ---
 
 ## 7. Next Steps for Upcoming Implementation
 
-1. **Filter Bottom Sheet**:
-   - Implement filter modal when "Filter" button in `TaskActionButtonsRow` is tapped.
-2. **Board Details Screen**:
+1. **Board Details Screen**:
    - Tapping any `TaskBoardCard` navigates to board tasks view (Kanban boards / task items).
-3. **Dynamic Realtime Sync**:
-   - Connect `TasksRemoteDataSource.getBoardsStream()` to auto-sync boards in real-time across devices.
+2. **Individual Board Task Items**:
+   - Define Task entity/model for items within a board and integrate Firebase RTDB persistence under `/boards/$boardId/tasks`.
+3. **Delete / Edit Board Actions**:
+   - Add contextual actions (edit/delete) on board cards if requested.

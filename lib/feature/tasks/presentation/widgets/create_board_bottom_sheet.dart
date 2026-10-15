@@ -130,6 +130,7 @@ class _CreateBoardBottomSheetState extends State<CreateBoardBottomSheet> {
       },
       builder: (context, state) {
         final isLoading = state is CreateBoardLoading;
+        final systemBottomPadding = MediaQuery.of(context).padding.bottom;
 
         return Container(
           decoration: BoxDecoration(
@@ -147,217 +148,227 @@ class _CreateBoardBottomSheetState extends State<CreateBoardBottomSheet> {
             start: 24.w,
             end: 24.w,
             top: 12.h,
-            bottom: bottomInset + 24.h,
+            bottom:
+                bottomInset +
+                (systemBottomPadding > 0 ? systemBottomPadding : 16.h) +
+                20.h,
           ),
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Top Drag Handle Indicator
-                  Center(
-                    child: Container(
-                      width: 40.w,
-                      height: 4.h,
-                      margin: EdgeInsets.only(bottom: 16.h),
-                      decoration: BoxDecoration(
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Top Drag Handle Indicator
+                    Center(
+                      child: Container(
+                        width: 40.w,
+                        height: 4.h,
+                        margin: EdgeInsets.only(bottom: 16.h),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : const Color(0xFFDCDCDC),
+                          borderRadius: BorderRadius.circular(2.r),
+                        ),
+                      ),
+                    ),
+
+                    // Header Row: Title & Close Button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          LocalStrings.createBoard,
+                          style: TextStyle(
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.w700,
+                            color: isDark
+                                ? AppColors.darkTextPrimary
+                                : AppColors.textDark,
+                            fontFamily: TextStyles.textLarge.fontFamily,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.textMuted,
+                            size: 22.sp,
+                          ),
+                          splashRadius: 20.r,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: 20.h),
+
+                    // 1. Board Name Field
+                    _buildFieldLabel(context, LocalStrings.boardName, isDark),
+                    SizedBox(height: 6.h),
+                    TextFormField(
+                      controller: _nameController,
+                      enabled: !isLoading,
+                      style: _inputTextStyle(isDark),
+                      decoration: _inputDecoration(
+                        hintText: LocalStrings.enterBoardName,
+                        isDark: isDark,
+                        prefixIcon: Icons.space_dashboard_outlined,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return LocalStrings.nameRequired;
+                        }
+                        return null;
+                      },
+                    ),
+
+                    SizedBox(height: 16.h),
+
+                    // 2. Board Department Dropdown Field
+                    _buildFieldLabel(
+                      context,
+                      LocalStrings.boardDepartment,
+                      isDark,
+                    ),
+                    SizedBox(height: 6.h),
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedDepartment,
+                      isExpanded: true,
+                      dropdownColor: isDark
+                          ? AppColors.darkCard
+                          : AppColors.white,
+                      style: _inputTextStyle(isDark),
+                      icon: Icon(
+                        Icons.keyboard_arrow_down_rounded,
                         color: isDark
-                            ? AppColors.darkBorder
-                            : const Color(0xFFDCDCDC),
-                        borderRadius: BorderRadius.circular(2.r),
+                            ? AppColors.darkTextSecondary
+                            : AppColors.textMuted,
                       ),
-                    ),
-                  ),
-
-                  // Header Row: Title & Close Button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        LocalStrings.createBoard,
-                        style: TextStyle(
-                          fontSize: 20.sp,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppColors.darkTextPrimary
-                              : AppColors.textDark,
-                          fontFamily: TextStyles.textLarge.fontFamily,
-                        ),
+                      decoration: _inputDecoration(
+                        hintText: LocalStrings.selectDepartment,
+                        isDark: isDark,
+                        prefixIcon: Icons.business_center_outlined,
                       ),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: Icon(
-                          Icons.close_rounded,
-                          color: isDark
-                              ? AppColors.darkTextSecondary
-                              : AppColors.textMuted,
-                          size: 22.sp,
-                        ),
-                        splashRadius: 20.r,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 20.h),
-
-                  // 1. Board Name Field
-                  _buildFieldLabel(context, LocalStrings.boardName, isDark),
-                  SizedBox(height: 6.h),
-                  TextFormField(
-                    controller: _nameController,
-                    enabled: !isLoading,
-                    style: _inputTextStyle(isDark),
-                    decoration: _inputDecoration(
-                      hintText: LocalStrings.enterBoardName,
-                      isDark: isDark,
-                      prefixIcon: Icons.space_dashboard_outlined,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return LocalStrings.nameRequired;
-                      }
-                      return null;
-                    },
-                  ),
-
-                  SizedBox(height: 16.h),
-
-                  // 2. Board Department Dropdown Field
-                  _buildFieldLabel(
-                    context,
-                    LocalStrings.boardDepartment,
-                    isDark,
-                  ),
-                  SizedBox(height: 6.h),
-                  DropdownButtonFormField<String>(
-                    initialValue: _selectedDepartment,
-                    isExpanded: true,
-                    dropdownColor: isDark
-                        ? AppColors.darkCard
-                        : AppColors.white,
-                    style: _inputTextStyle(isDark),
-                    icon: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: isDark
-                          ? AppColors.darkTextSecondary
-                          : AppColors.textMuted,
-                    ),
-                    decoration: _inputDecoration(
-                      hintText: LocalStrings.selectDepartment,
-                      isDark: isDark,
-                      prefixIcon: Icons.business_center_outlined,
-                    ),
-                    items: _departmentOptions.map((dept) {
-                      return DropdownMenuItem<String>(
-                        value: dept,
-                        child: Text(
-                          LocalStrings.marketing,
-                          style: _inputTextStyle(isDark),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: isLoading
-                        ? null
-                        : (val) {
-                            setState(() {
-                              _selectedDepartment = val;
-                            });
-                          },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return LocalStrings.departmentRequired;
-                      }
-                      return null;
-                    },
-                  ),
-
-                  SizedBox(height: 16.h),
-
-                  // 3. Board Description Field (Multiline)
-                  _buildFieldLabel(
-                    context,
-                    LocalStrings.boardDescription,
-                    isDark,
-                  ),
-                  SizedBox(height: 6.h),
-                  TextFormField(
-                    controller: _descriptionController,
-                    enabled: !isLoading,
-                    minLines: 3,
-                    maxLines: 5,
-                    textAlignVertical: TextAlignVertical.top,
-                    style: _inputTextStyle(isDark),
-                    decoration: _inputDecoration(
-                      hintText: LocalStrings.enterBoardDescription,
-                      isDark: isDark,
-                      prefixIcon: Icons.description_outlined,
-                      isMultiline: true,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return LocalStrings.descriptionRequired;
-                      }
-                      return null;
-                    },
-                  ),
-
-                  SizedBox(height: 24.h),
-
-                  // 4. Save Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48.h,
-                    child: ElevatedButton(
-                      onPressed: isLoading
+                      items: _departmentOptions.map((dept) {
+                        return DropdownMenuItem<String>(
+                          value: dept,
+                          child: Text(
+                            LocalStrings.marketing,
+                            style: _inputTextStyle(isDark),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: isLoading
                           ? null
-                          : () => _onSavePressed(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        foregroundColor: AppColors.white,
-                        disabledBackgroundColor: AppColors.primaryColor
-                            .withValues(alpha: 0.6),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
+                          : (val) {
+                              setState(() {
+                                _selectedDepartment = val;
+                              });
+                            },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return LocalStrings.departmentRequired;
+                        }
+                        return null;
+                      },
+                    ),
+
+                    SizedBox(height: 16.h),
+
+                    // 3. Board Description Field (Multiline)
+                    _buildFieldLabel(
+                      context,
+                      LocalStrings.boardDescription,
+                      isDark,
+                    ),
+                    SizedBox(height: 6.h),
+                    TextFormField(
+                      controller: _descriptionController,
+                      enabled: !isLoading,
+                      minLines: 3,
+                      maxLines: 5,
+                      textAlignVertical: TextAlignVertical.top,
+                      style: _inputTextStyle(isDark),
+                      decoration: _inputDecoration(
+                        hintText: LocalStrings.enterBoardDescription,
+                        isDark: isDark,
+                        prefixIcon: Icons.description_outlined,
+                        isMultiline: true,
                       ),
-                      child: isLoading
-                          ? SizedBox(
-                              width: 22.sp,
-                              height: 22.sp,
-                              child: const CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: AppColors.white,
-                              ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.check_circle_outline_rounded,
-                                  size: 20.sp,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return LocalStrings.descriptionRequired;
+                        }
+                        return null;
+                      },
+                    ),
+
+                    SizedBox(height: 24.h),
+
+                    // 4. Save Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48.h,
+                      child: ElevatedButton(
+                        onPressed: isLoading
+                            ? null
+                            : () => _onSavePressed(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          foregroundColor: AppColors.white,
+                          disabledBackgroundColor: AppColors.primaryColor
+                              .withValues(alpha: 0.6),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                        ),
+                        child: isLoading
+                            ? SizedBox(
+                                width: 22.sp,
+                                height: 22.sp,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2.5,
                                   color: AppColors.white,
                                 ),
-                                SizedBox(width: 8.w),
-                                Text(
-                                  LocalStrings.save,
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w600,
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle_outline_rounded,
+                                    size: 20.sp,
                                     color: AppColors.white,
-                                    fontFamily: TextStyles.textLarge.fontFamily,
                                   ),
-                                ),
-                              ],
-                            ),
+                                  SizedBox(width: 8.w),
+                                  Text(
+                                    LocalStrings.save,
+                                    style: TextStyle(
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.white,
+                                      fontFamily:
+                                          TextStyles.textLarge.fontFamily,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
                     ),
-                  ),
-                ],
+
+                    // Additional bottom clearance so save button is never obscured
+                    SizedBox(height: 16.h),
+                  ],
+                ),
               ),
             ),
           ),
