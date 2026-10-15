@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localization/flutter_localization.dart';
@@ -8,12 +9,21 @@ import 'config/PrefHelper/prefs.dart';
 import 'config/PrefHelper/helper.dart';
 import 'config/theme/theme_cubit.dart';
 import 'core/utils/local_strings.dart';
+import 'firebase_options.dart';
 import 'injection_container.dart' as di;
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase initialization: $e');
+  }
 
   await Prefs.init();
   await di.init();

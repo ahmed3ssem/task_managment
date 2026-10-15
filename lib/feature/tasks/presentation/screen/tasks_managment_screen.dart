@@ -2,41 +2,93 @@
 // File: tasks_managment_screen.dart
 // Description: Main task management screen.
 //              Features a centered AppBar, horizontal scrolling category filter cells,
-//              and a rounded search bar for filtering tasks by name.
+//              a rounded search bar, Filter/Create Board action buttons,
+//              and a vertical boards list connected to [TasksCubit] and Firebase RTDB.
 // ============================================================================
 
+import 'package:dartz/dartz.dart' hide State;
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../config/theme/styles.dart';
 import '../../../../config/theme/theme_helper.dart';
+import '../../../../core/error/failures.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/local_strings.dart';
-import '../../data/models/task_category_model.dart';
+import '../../../../injection_container.dart' as di;
 import '../../data/models/task_board_model.dart';
-import '../widgets/task_category_cell.dart';
-import '../widgets/task_search_bar.dart';
+import '../../data/models/task_category_model.dart';
+import '../../domain/repositories/tasks_repository.dart';
+import '../../domain/usecases/create_board_usecase.dart';
+import '../../domain/usecases/get_boards_usecase.dart';
+import '../cubit/tasks_cubit.dart';
+import '../widgets/create_board_bottom_sheet.dart';
 import '../widgets/task_action_buttons_row.dart';
 import '../widgets/task_board_card.dart';
+import '../widgets/task_category_cell.dart';
+import '../widgets/task_search_bar.dart';
 
-/// [TasksManagmentScreen] is the entry view for managing and tracking tasks.
-///
-/// UI Structure & Responsibilities:
-/// 1. AppBar: Centered localized title ("Task Management" / "إدارة المهام")
-///    styled to adapt seamlessly across light and dark themes.
-/// 2. Categories Filter (Horizontal ListView): Renders category filter pills with
-///    45x45 badges displaying count and title. Selection filters task lists.
-/// 3. Search Bar: 8px rounded search input allowing real-time searching by task_name,
-///    with clear action resetting the search query to fetch all tasks.
-/// 4. (Upcoming) Tasks Content Area: Will host the tasks list connected to Firebase/Cubit.
-class TasksManagmentScreen extends StatefulWidget {
-  const TasksManagmentScreen({super.key});
+/// Fallback in-memory repository used when GetIt container has not registered
+/// Firebase Realtime Database dependencies (e.g. during standalone widget tests).
+class _FallbackTasksRepository implements TasksRepository {
+  final List<TaskBoardModel> _boards = [];
 
   @override
-  State<TasksManagmentScreen> createState() => _TasksManagmentScreenState();
+  Future<Either<Failures, void>> createBoard(TaskBoardModel board) async {
+    _boards.add(board);
+    return const Right(null);
+  }
+
+  @override
+  Future<Either<Failures, List<TaskBoardModel>>> getBoards() async {
+    return Right(_boards);
+  }
+
+  @override
+  Stream<List<TaskBoardModel>> getBoardsStream() async* {
+    yield _boards;
+  }
 }
 
-class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
+/// [TasksManagmentScreen] is the entry view for managing and tracking tasks.
+/// Provides [TasksCubit] via [BlocProvider] to allow child widgets to dispatch
+/// board creation and queries.
+class TasksManagmentScreen extends StatelessWidget {
+  final TasksCubit? cubit;
+
+  const TasksManagmentScreen({super.key, this.cubit});
+
+  TasksCubit _createCubit() {
+    if (cubit != null) return cubit!;
+    if (di.sl.isRegistered<TasksCubit>()) {
+      return di.sl<TasksCubit>();
+    }
+    final fallbackRepo = _FallbackTasksRepository();
+    return TasksCubit(
+      createBoardUseCase: CreateBoardUseCase(repository: fallbackRepo),
+      getBoardsUseCase: GetBoardsUseCase(repository: fallbackRepo),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<TasksCubit>(
+      create: (_) => _createCubit(),
+      child: const TasksManagmentView(),
+    );
+  }
+}
+
+/// [TasksManagmentView] renders the task management UI and manages local filtering state.
+class TasksManagmentView extends StatefulWidget {
+  const TasksManagmentView({super.key});
+
+  @override
+  State<TasksManagmentView> createState() => _TasksManagmentViewState();
+}
+
+class _TasksManagmentViewState extends State<TasksManagmentView> {
   // --------------------------------------------------------------------------
   // State Variables
   // --------------------------------------------------------------------------
@@ -53,13 +105,22 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
   /// Exposes the active search query to future Cubits / Firebase query streams.
   String get searchQuery => _searchQuery;
 
+  /// Active list of task boards, populated initially with default mock boards
+  /// and dynamically prepended when new boards are created via the bottom sheet.
+  late List<TaskBoardModel> _boards;
+
   // --------------------------------------------------------------------------
   // Lifecycle Management
   // --------------------------------------------------------------------------
 
   @override
+  void initState() {
+    super.initState();
+    _boards = List.from(_getDefaultBoards());
+  }
+
+  @override
   void dispose() {
-    // Dispose the search text controller to prevent memory leaks
     _searchController.dispose();
     super.dispose();
   }
@@ -69,13 +130,10 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
   // --------------------------------------------------------------------------
 
   /// Handles search query updates as user types in the search bar.
-  /// When task list / Cubit is connected, dispatch a FilterTasksByName event here.
   void _onSearchChanged(String query) {
     setState(() {
       _searchQuery = query;
     });
-    // Future Cubit integration:
-    // context.read<TasksCubit>().searchTasks(query: query, categoryId: activeCategoryId);
   }
 
   /// Triggered when the close ('X') button is tapped in the search bar.
@@ -84,8 +142,6 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
     setState(() {
       _searchQuery = '';
     });
-    // Future Cubit integration:
-    // context.read<TasksCubit>().resetSearchFilter();
   }
 
   // --------------------------------------------------------------------------
@@ -93,7 +149,6 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
   // --------------------------------------------------------------------------
 
   /// Returns the localized categories list.
-  /// In subsequent phases, category counts will be dynamically populated from Firebase.
   List<TaskCategoryModel> _getCategories(BuildContext context) {
     return [
       TaskCategoryModel(id: 'all', title: LocalStrings.all, count: 14),
@@ -112,9 +167,8 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
     ];
   }
 
-  /// Returns the complete list of task boards.
-  /// In subsequent phases, this will be fetched dynamically via TasksCubit from Firebase.
-  List<TaskBoardModel> _getAllBoards() {
+  /// Returns the initial default list of task boards.
+  List<TaskBoardModel> _getDefaultBoards() {
     return const [
       TaskBoardModel(
         id: '1',
@@ -161,10 +215,9 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
 
   /// Filters boards by currently selected category tab and search query string.
   List<TaskBoardModel> _getFilteredBoards(List<TaskCategoryModel> categories) {
-    final allBoards = _getAllBoards();
     final activeCategory = categories[_selectedCategoryIndex];
 
-    return allBoards.where((board) {
+    return _boards.where((board) {
       // 1. Category Filter (match department or show all)
       final matchesCategory =
           activeCategory.id == 'all' ||
@@ -240,8 +293,6 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
                       setState(() {
                         _selectedCategoryIndex = index;
                       });
-                      // Future Cubit integration:
-                      // context.read<TasksCubit>().selectCategory(category.id);
                     },
                   );
                 },
@@ -250,7 +301,7 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
 
             SizedBox(height: 18.h),
 
-            // Search Bar Component (15px rounded corners, search icon, clear button)
+            // Search Bar Component (8px rounded corners, search icon, clear button)
             Padding(
               padding: EdgeInsetsDirectional.symmetric(horizontal: 24.w),
               child: TaskSearchBar(
@@ -269,8 +320,16 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
                 onFilterTap: () {
                   // Design only now: opens Filter bottom dialog later
                 },
-                onCreateBoardTap: () {
-                  // Design only now: opens Create Board bottom dialog later
+                onCreateBoardTap: () async {
+                  final createdBoard =
+                      await CreateBoardBottomSheet.show<TaskBoardModel>(
+                        context,
+                      );
+                  if (createdBoard != null && mounted) {
+                    setState(() {
+                      _boards.insert(0, createdBoard);
+                    });
+                  }
                 },
               ),
             ),

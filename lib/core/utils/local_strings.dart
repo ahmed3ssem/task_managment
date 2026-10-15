@@ -37,9 +37,22 @@ class LocalStrings {
   static String get department => 'department'.tr;
   static String get creationDate => 'creationDate'.tr;
   static String get owner => 'owner'.tr;
+  static String get boardName => 'boardName'.tr;
+  static String get enterBoardName => 'enterBoardName'.tr;
+  static String get boardDepartment => 'boardDepartment'.tr;
+  static String get selectDepartment => 'selectDepartment'.tr;
+  static String get boardDescription => 'boardDescription'.tr;
+  static String get enterBoardDescription => 'enterBoardDescription'.tr;
+  static String get save => 'save'.tr;
+  static String get nameRequired => 'nameRequired'.tr;
+  static String get departmentRequired => 'departmentRequired'.tr;
+  static String get descriptionRequired => 'descriptionRequired'.tr;
+  static String get boardCreatedSuccessfully => 'boardCreatedSuccessfully'.tr;
+  static String get nothingToShowYet => 'nothingToShowYet'.tr;
 }
 
 mixin AppLocale {
+  static const String nothingToShowYet = 'nothingToShowYet';
   static const String noData = 'noData';
   static const String english = 'english';
   static const String arabic = 'arabic';
@@ -64,6 +77,17 @@ mixin AppLocale {
   static const String department = 'department';
   static const String creationDate = 'creationDate';
   static const String owner = 'owner';
+  static const String boardName = 'boardName';
+  static const String enterBoardName = 'enterBoardName';
+  static const String boardDepartment = 'boardDepartment';
+  static const String selectDepartment = 'selectDepartment';
+  static const String boardDescription = 'boardDescription';
+  static const String enterBoardDescription = 'enterBoardDescription';
+  static const String save = 'save';
+  static const String nameRequired = 'nameRequired';
+  static const String departmentRequired = 'departmentRequired';
+  static const String descriptionRequired = 'descriptionRequired';
+  static const String boardCreatedSuccessfully = 'boardCreatedSuccessfully';
 
   static const Map<String, dynamic> AR = {
     noData: "لا يوجد بيانات",
@@ -90,9 +114,22 @@ mixin AppLocale {
     department: "القسم: ",
     creationDate: "تاريخ الإنشاء: ",
     owner: "المالك",
+    boardName: "اسم اللوحة",
+    enterBoardName: "أدخل اسم اللوحة",
+    boardDepartment: "القسم",
+    selectDepartment: "اختر القسم",
+    boardDescription: "الوصف",
+    enterBoardDescription: "أدخل وصف اللوحة",
+    save: "حفظ",
+    nameRequired: "اسم اللوحة مطلوب",
+    departmentRequired: "القسم مطلوب",
+    descriptionRequired: "الوصف مطلوب",
+    boardCreatedSuccessfully: "تم إنشاء اللوحة بنجاح",
+    nothingToShowYet: "لا يوجد شيء لعرضه حتى الآن",
   };
 
   static const Map<String, dynamic> EN = {
+    nothingToShowYet: "Nothing to show yet",
     noData: "There is no data",
     english: "Proceed With English",
     arabic: "Proceed With Arabic",
@@ -117,5 +154,16 @@ mixin AppLocale {
     department: "Department: ",
     creationDate: "Creation Date: ",
     owner: "Owner",
+    boardName: "Board Name",
+    enterBoardName: "Enter board name",
+    boardDepartment: "Board Department",
+    selectDepartment: "Select Department",
+    boardDescription: "Board Description",
+    enterBoardDescription: "Enter board description",
+    save: "Save",
+    nameRequired: "Board name is required",
+    departmentRequired: "Department is required",
+    descriptionRequired: "Description is required",
+    boardCreatedSuccessfully: "Board created successfully",
   };
 }
