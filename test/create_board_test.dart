@@ -169,6 +169,15 @@ void main() {
         expect(find.text(LocalStrings.boardDescription), findsOneWidget);
         expect(find.text(LocalStrings.save), findsOneWidget);
 
+        // Verify description icon and hint text are aligned on the exact same line
+        final iconPos = tester.getTopLeft(
+          find.byIcon(Icons.description_outlined),
+        );
+        final hintPos = tester.getTopLeft(
+          find.text(LocalStrings.enterBoardDescription),
+        );
+        expect((iconPos.dy - hintPos.dy).abs(), lessThan(3.0));
+
         // Tap Save without filling to trigger validation
         await tester.ensureVisible(find.text(LocalStrings.save));
         await tester.tap(find.text(LocalStrings.save));

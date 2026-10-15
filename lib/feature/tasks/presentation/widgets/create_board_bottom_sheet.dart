@@ -419,34 +419,25 @@ class _CreateBoardBottomSheetState extends State<CreateBoardBottomSheet> {
         fontFamily: TextStyles.textLarge.fontFamily,
       ),
       prefixIcon: isMultiline
-          ? Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: EdgeInsetsDirectional.only(
-                    top: 12.h,
-                    start: 14.w,
-                    end: 10.w,
-                  ),
-                  child: Icon(
-                    prefixIcon,
-                    size: 18.sp,
-                    color: isDark
-                        ? AppColors.darkTextSecondary
-                        : AppColors.textMuted,
-                  ),
-                ),
-              ],
-            )
+          ? null
           : Icon(
               prefixIcon,
               size: 18.sp,
               color: isDark ? AppColors.darkTextSecondary : AppColors.textMuted,
             ),
-      prefixIconConstraints: isMultiline
-          ? BoxConstraints(minWidth: 42.w, minHeight: 44.h)
+      prefix: isMultiline
+          ? Padding(
+              padding: EdgeInsetsDirectional.only(start: 0, end: 8.w),
+              child: Icon(
+                prefixIcon,
+                size: 18.sp,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textMuted,
+              ),
+            )
           : null,
+      prefixIconConstraints: null,
       filled: true,
       fillColor: isDark ? AppColors.darkCard : AppColors.white,
       contentPadding: EdgeInsetsDirectional.symmetric(

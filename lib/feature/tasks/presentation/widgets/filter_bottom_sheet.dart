@@ -231,294 +231,296 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         bottom:
             bottomInset +
             (systemBottomPadding > 0 ? systemBottomPadding : 16.h) +
-            20.h,
+            12.h,
       ),
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Drag Handle Indicator
-              Center(
-                child: Container(
-                  width: 40.w,
-                  height: 4.h,
-                  margin: EdgeInsets.only(bottom: 16.h),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.darkBorder
-                        : const Color(0xFFDCDCDC),
-                    borderRadius: BorderRadius.circular(2.r),
-                  ),
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top Drag Handle Indicator
+            Center(
+              child: Container(
+                width: 40.w,
+                height: 4.h,
+                margin: EdgeInsets.only(bottom: 16.h),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.darkBorder
+                      : const Color(0xFFDCDCDC),
+                  borderRadius: BorderRadius.circular(2.r),
                 ),
               ),
+            ),
 
-              // Header: Circular Icon Badge + "Filter" Title + Close Button
-              Row(
-                children: [
-                  // 30x30 Figma Grey Circle Badge with Tuning Icon
-                  Container(
-                    width: 30.w,
-                    height: 30.w,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF9E9E9E),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.tune_rounded,
-                        size: 16.sp,
-                        color: const Color(0xFF2D2D2D),
-                      ),
+            // Header: Circular Icon Badge + "Filter" Title + Close Button
+            Row(
+              children: [
+                // 30x30 Figma Grey Circle Badge with Tuning Icon
+                Container(
+                  width: 30.w,
+                  height: 30.w,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF9E9E9E),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.tune_rounded,
+                      size: 16.sp,
+                      color: const Color(0xFF2D2D2D),
                     ),
                   ),
+                ),
 
-                  SizedBox(width: 12.w),
+                SizedBox(width: 12.w),
 
-                  Text(
-                    LocalStrings.filter,
+                Text(
+                  LocalStrings.filter,
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? AppColors.darkTextPrimary
+                        : const Color(0xFF2D2D2D),
+                    fontFamily: TextStyles.textLarge.fontFamily,
+                  ),
+                ),
+
+                const Spacer(),
+
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.textMuted,
+                    size: 22.sp,
+                  ),
+                  splashRadius: 20.r,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 20.h),
+
+            // 1. Creation Date Field (Tap opens Calendar)
+            _buildFieldLabel(context, creationDateLabel, isDark),
+            SizedBox(height: 6.h),
+            InkWell(
+              onTap: () => _pickCreationDate(context),
+              borderRadius: BorderRadius.circular(6.r),
+              child: Container(
+                height: 42.h,
+                padding: EdgeInsetsDirectional.symmetric(horizontal: 14.w),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCard : const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(6.r),
+                  border: Border.all(
+                    color: isDark
+                        ? AppColors.darkBorder
+                        : const Color(0xFFE2E2E2),
+                    width: 1.w,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _selectedDate != null
+                          ? DateFormat('d MMM yyyy').format(_selectedDate!)
+                          : LocalStrings.selectDate,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w400,
+                        color: _selectedDate != null
+                            ? (isDark
+                                  ? AppColors.darkTextPrimary
+                                  : const Color(0xFF2D2D2D))
+                            : (isDark
+                                  ? AppColors.darkTextSecondary
+                                  : const Color(0xFF797979)),
+                        fontFamily: TextStyles.textLarge.fontFamily,
+                      ),
+                    ),
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: 18.sp,
+                      color: const Color(0xFF797979),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            SizedBox(height: 16.h),
+
+            // 2. Department Dropdown Field
+            _buildFieldLabel(context, departmentLabel, isDark),
+            SizedBox(height: 6.h),
+            Container(
+              height: 42.h,
+              padding: EdgeInsetsDirectional.symmetric(horizontal: 14.w),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkCard : const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(6.r),
+                border: Border.all(
+                  color: isDark
+                      ? AppColors.darkBorder
+                      : const Color(0xFFE2E2E2),
+                  width: 1.w,
+                ),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedDepartment,
+                  isExpanded: true,
+                  hint: Text(
+                    departmentLabel,
                     style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w400,
                       color: isDark
-                          ? AppColors.darkTextPrimary
-                          : const Color(0xFF2D2D2D),
+                          ? AppColors.darkTextSecondary
+                          : const Color(0xFF797979),
                       fontFamily: TextStyles.textLarge.fontFamily,
                     ),
                   ),
-
-                  const Spacer(),
-
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(
-                      Icons.close_rounded,
-                      color: isDark
-                          ? AppColors.darkTextSecondary
-                          : AppColors.textMuted,
-                      size: 22.sp,
-                    ),
-                    splashRadius: 20.r,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                  icon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 22.sp,
+                    color: const Color(0xFF797979),
                   ),
-                ],
-              ),
-
-              SizedBox(height: 20.h),
-
-              // 1. Creation Date Field (Tap opens Calendar)
-              _buildFieldLabel(context, creationDateLabel, isDark),
-              SizedBox(height: 6.h),
-              InkWell(
-                onTap: () => _pickCreationDate(context),
-                borderRadius: BorderRadius.circular(6.r),
-                child: Container(
-                  height: 42.h,
-                  padding: EdgeInsetsDirectional.symmetric(horizontal: 14.w),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.darkCard
-                        : const Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(6.r),
-                    border: Border.all(
-                      color: isDark
-                          ? AppColors.darkBorder
-                          : const Color(0xFFE2E2E2),
-                      width: 1.w,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _selectedDate != null
-                            ? DateFormat('d MMM yyyy').format(_selectedDate!)
-                            : LocalStrings.selectDate,
+                  dropdownColor: isDark ? AppColors.darkCard : AppColors.white,
+                  items: deptItems.map((dept) {
+                    return DropdownMenuItem<String>(
+                      value: dept,
+                      child: Text(
+                        dept,
                         style: TextStyle(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w400,
-                          color: _selectedDate != null
-                              ? (isDark
-                                    ? AppColors.darkTextPrimary
-                                    : const Color(0xFF2D2D2D))
-                              : (isDark
-                                    ? AppColors.darkTextSecondary
-                                    : const Color(0xFF797979)),
+                          color: isDark
+                              ? AppColors.darkTextPrimary
+                              : const Color(0xFF2D2D2D),
                           fontFamily: TextStyles.textLarge.fontFamily,
                         ),
                       ),
-                      Icon(
-                        Icons.calendar_today_outlined,
-                        size: 18.sp,
-                        color: const Color(0xFF797979),
-                      ),
-                    ],
-                  ),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      _selectedDepartment = val;
+                    });
+                  },
                 ),
               ),
+            ),
 
-              SizedBox(height: 16.h),
+            SizedBox(height: 16.h),
 
-              // 2. Department Dropdown Field
-              _buildFieldLabel(context, departmentLabel, isDark),
-              SizedBox(height: 6.h),
-              Container(
-                height: 42.h,
-                padding: EdgeInsetsDirectional.symmetric(horizontal: 14.w),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkCard : const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(6.r),
-                  border: Border.all(
-                    color: isDark
-                        ? AppColors.darkBorder
-                        : const Color(0xFFE2E2E2),
-                    width: 1.w,
-                  ),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedDepartment,
-                    isExpanded: true,
-                    hint: Text(
-                      departmentLabel,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w400,
-                        color: isDark
-                            ? AppColors.darkTextSecondary
-                            : const Color(0xFF797979),
-                        fontFamily: TextStyles.textLarge.fontFamily,
-                      ),
-                    ),
-                    icon: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      size: 22.sp,
-                      color: const Color(0xFF797979),
-                    ),
-                    dropdownColor: isDark
-                        ? AppColors.darkCard
-                        : AppColors.white,
-                    items: deptItems.map((dept) {
-                      return DropdownMenuItem<String>(
-                        value: dept,
-                        child: Text(
-                          dept,
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w400,
-                            color: isDark
-                                ? AppColors.darkTextPrimary
-                                : const Color(0xFF2D2D2D),
-                            fontFamily: TextStyles.textLarge.fontFamily,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      setState(() {
-                        _selectedDepartment = val;
-                      });
-                    },
-                  ),
+            // 3. Owning Status Dropdown Field (Strictly "Owner")
+            _buildFieldLabel(context, LocalStrings.owningStatus, isDark),
+            SizedBox(height: 6.h),
+            Container(
+              height: 42.h,
+              padding: EdgeInsetsDirectional.symmetric(horizontal: 14.w),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkCard : const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(6.r),
+                border: Border.all(
+                  color: isDark
+                      ? AppColors.darkBorder
+                      : const Color(0xFFE2E2E2),
+                  width: 1.w,
                 ),
               ),
-
-              SizedBox(height: 16.h),
-
-              // 3. Owning Status Dropdown Field (Strictly "Owner")
-              _buildFieldLabel(context, LocalStrings.owningStatus, isDark),
-              SizedBox(height: 6.h),
-              Container(
-                height: 42.h,
-                padding: EdgeInsetsDirectional.symmetric(horizontal: 14.w),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkCard : const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(6.r),
-                  border: Border.all(
-                    color: isDark
-                        ? AppColors.darkBorder
-                        : const Color(0xFFE2E2E2),
-                    width: 1.w,
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedOwningStatus,
+                  isExpanded: true,
+                  hint: Text(
+                    LocalStrings.owningStatus,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w400,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : const Color(0xFF797979),
+                      fontFamily: TextStyles.textLarge.fontFamily,
+                    ),
                   ),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedOwningStatus,
-                    isExpanded: true,
-                    hint: Text(
-                      LocalStrings.owningStatus,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w400,
-                        color: isDark
-                            ? AppColors.darkTextSecondary
-                            : const Color(0xFF797979),
-                        fontFamily: TextStyles.textLarge.fontFamily,
-                      ),
-                    ),
-                    icon: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      size: 22.sp,
-                      color: const Color(0xFF797979),
-                    ),
-                    dropdownColor: isDark
-                        ? AppColors.darkCard
-                        : AppColors.white,
-                    items: [
-                      DropdownMenuItem<String>(
-                        value: 'Owner',
-                        child: Text(
-                          LocalStrings.owner,
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w400,
-                            color: isDark
-                                ? AppColors.darkTextPrimary
-                                : const Color(0xFF2D2D2D),
-                            fontFamily: TextStyles.textLarge.fontFamily,
-                          ),
+                  icon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 22.sp,
+                    color: const Color(0xFF797979),
+                  ),
+                  dropdownColor: isDark ? AppColors.darkCard : AppColors.white,
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: 'Owner',
+                      child: Text(
+                        LocalStrings.owner,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w400,
+                          color: isDark
+                              ? AppColors.darkTextPrimary
+                              : const Color(0xFF2D2D2D),
+                          fontFamily: TextStyles.textLarge.fontFamily,
                         ),
                       ),
-                    ],
-                    onChanged: (val) {
-                      setState(() {
-                        _selectedOwningStatus = val;
-                      });
-                    },
-                  ),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    setState(() {
+                      _selectedOwningStatus = val;
+                    });
+                  },
                 ),
               ),
+            ),
 
-              SizedBox(height: 24.h),
+            SizedBox(height: 20.h),
 
-              // 4. Action Buttons Row: Reset & Apply
-              Row(
-                children: [
-                  // Reset Button (Figma: rgba(204, 204, 204, 0.8), 8px radius)
-                  Expanded(
-                    child: SizedBox(
-                      height: 42.h,
-                      child: ElevatedButton(
-                        onPressed: _onResetPressed,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(
-                            0xFFCCCCCC,
-                          ).withValues(alpha: 0.8),
-                          foregroundColor: const Color(0xFF2D2D2D),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
+            // 4. Action Buttons Row: Reset & Apply
+            Row(
+              children: [
+                // Reset Button (Figma: rgba(204, 204, 204, 0.8), 8px radius)
+                Expanded(
+                  child: SizedBox(
+                    height: 48.h,
+                    child: ElevatedButton(
+                      onPressed: _onResetPressed,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(
+                          0xFFCCCCCC,
+                        ).withValues(alpha: 0.8),
+                        foregroundColor: const Color(0xFF2D2D2D),
+                        elevation: 0,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 0,
                         ),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        minimumSize: Size(0, 48.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                      child: Center(
                         child: Text(
                           LocalStrings.reset,
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16.sp,
-                            fontWeight: FontWeight.w500,
+                            height: 1.15,
+                            leadingDistribution: TextLeadingDistribution.even,
+                            fontWeight: FontWeight.w600,
                             color: const Color(0xFF2D2D2D),
                             fontFamily: TextStyles.textLarge.fontFamily,
                           ),
@@ -526,29 +528,40 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       ),
                     ),
                   ),
+                ),
 
-                  SizedBox(width: 14.w),
+                SizedBox(width: 14.w),
 
-                  // Apply Button (Matching Create Board: AppColors.primaryColor, 8px radius)
-                  Expanded(
-                    child: SizedBox(
-                      height: 42.h,
-                      child: ElevatedButton(
-                        onPressed: _onApplyPressed,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          foregroundColor: AppColors.white,
-                          elevation: 0,
-                          shadowColor: Colors.black.withValues(alpha: 0.04),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
+                // Apply Button (Matching Create Board: AppColors.primaryColor, 8px radius)
+                Expanded(
+                  child: SizedBox(
+                    height: 48.h,
+                    child: ElevatedButton(
+                      onPressed: _onApplyPressed,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: AppColors.white,
+                        elevation: 0,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 0,
                         ),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        minimumSize: Size(0, 48.h),
+                        shadowColor: Colors.black.withValues(alpha: 0.04),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                      child: Center(
                         child: Text(
                           LocalStrings.apply,
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16.sp,
-                            fontWeight: FontWeight.w500,
+                            height: 1.15,
+                            leadingDistribution: TextLeadingDistribution.even,
+                            fontWeight: FontWeight.w600,
                             color: AppColors.white,
                             fontFamily: TextStyles.textLarge.fontFamily,
                           ),
@@ -556,13 +569,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       ),
                     ),
                   ),
-                ],
-              ),
-
-              // Additional bottom clearance so buttons are never obscured
-              SizedBox(height: 16.h),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

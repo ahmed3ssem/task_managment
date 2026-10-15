@@ -71,7 +71,7 @@ This document captures the current architecture, implemented features, design de
    - **Form Fields**:
      - **Board Name**: `TextFormField` (8.r border radius, non-empty validation via `LocalStrings.nameRequired`).
      - **Board Department**: `DropdownButtonFormField<String>` with strictly `"Marketing"` option (validated selection via `LocalStrings.departmentRequired`).
-     - **Board Description**: Multiline `TextFormField` (top-aligned prefix icon, 8.r border radius, non-empty validation via `LocalStrings.descriptionRequired`).
+     - **Board Description**: Multiline `TextFormField` with inline `prefix` icon aligned on the exact same line as the hint text, 8.r border radius, non-empty validation via `LocalStrings.descriptionRequired`.
    - **Save CTA**: Styled in brand green (`AppColors.primaryColor`), validates form, triggers `TasksCubit.createBoard(...)`, displays loading spinner, shows floating SnackBar on success, and dismisses modal.
 4. **`screen/tasks_managment_screen.dart`**:
    - Provides `TasksCubit` via `BlocProvider` and starts `watchBoards()`.
