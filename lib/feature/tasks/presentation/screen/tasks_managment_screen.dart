@@ -13,9 +13,11 @@ import '../../../../config/theme/theme_helper.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/local_strings.dart';
 import '../../data/models/task_category_model.dart';
+import '../../data/models/task_board_model.dart';
 import '../widgets/task_category_cell.dart';
 import '../widgets/task_search_bar.dart';
 import '../widgets/task_action_buttons_row.dart';
+import '../widgets/task_board_card.dart';
 
 /// [TasksManagmentScreen] is the entry view for managing and tracking tasks.
 ///
@@ -110,6 +112,76 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
     ];
   }
 
+  /// Returns the complete list of task boards.
+  /// In subsequent phases, this will be fetched dynamically via TasksCubit from Firebase.
+  List<TaskBoardModel> _getAllBoards() {
+    return const [
+      TaskBoardModel(
+        id: '1',
+        name: 'Board Name',
+        department: 'Marketing',
+        description:
+            'In the last five to ten years, business models and marketing methodologies have dramatically evolved.',
+        creationDate: '17 Jul 2024',
+        role: 'Owner',
+        additionalMembersCount: 6,
+      ),
+      TaskBoardModel(
+        id: '2',
+        name: 'Mobile App Architecture',
+        department: 'Software',
+        description:
+            'Implementation of Clean Architecture with Flutter and Firebase cloud functions sync.',
+        creationDate: '20 Jul 2024',
+        role: 'Owner',
+        additionalMembersCount: 4,
+      ),
+      TaskBoardModel(
+        id: '3',
+        name: 'Q3 Financial Audit',
+        department: 'Finance',
+        description:
+            'Comprehensive quarterly budget review, expense auditing, and financial projections.',
+        creationDate: '01 Aug 2024',
+        role: 'Owner',
+        additionalMembersCount: 2,
+      ),
+      TaskBoardModel(
+        id: '4',
+        name: 'AI Agent R&D',
+        department: 'Research and Development',
+        description:
+            'Researching multi-agent collaboration patterns and autonomous agent evaluation frameworks.',
+        creationDate: '12 Aug 2024',
+        role: 'Owner',
+        additionalMembersCount: 8,
+      ),
+    ];
+  }
+
+  /// Filters boards by currently selected category tab and search query string.
+  List<TaskBoardModel> _getFilteredBoards(List<TaskCategoryModel> categories) {
+    final allBoards = _getAllBoards();
+    final activeCategory = categories[_selectedCategoryIndex];
+
+    return allBoards.where((board) {
+      // 1. Category Filter (match department or show all)
+      final matchesCategory =
+          activeCategory.id == 'all' ||
+          board.department.toLowerCase() ==
+              activeCategory.title.toLowerCase() ||
+          board.department.toLowerCase() == activeCategory.id.toLowerCase();
+
+      // 2. Search Query Filter (match board name or department)
+      final matchesSearch =
+          _searchQuery.isEmpty ||
+          board.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          board.department.toLowerCase().contains(_searchQuery.toLowerCase());
+
+      return matchesCategory && matchesSearch;
+    }).toList();
+  }
+
   // --------------------------------------------------------------------------
   // UI Building
   // --------------------------------------------------------------------------
@@ -118,6 +190,7 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
   Widget build(BuildContext context) {
     final isDark = ThemeHelper.isDarkMode(context);
     final categories = _getCategories(context);
+    final filteredBoards = _getFilteredBoards(categories);
 
     return Scaffold(
       backgroundColor: ThemeHelper.backgroundColor(context),
@@ -200,6 +273,43 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
                   // Design only now: opens Create Board bottom dialog later
                 },
               ),
+            ),
+
+            SizedBox(height: 18.h),
+
+            // Vertical Task Boards List View
+            Expanded(
+              child: filteredBoards.isEmpty
+                  ? Center(
+                      child: Text(
+                        LocalStrings.noData,
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: AppColors.textMuted,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: TextStyles.textLarge.fontFamily,
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsetsDirectional.only(
+                        start: 24.w,
+                        end: 24.w,
+                        bottom: 24.h,
+                      ),
+                      itemCount: filteredBoards.length,
+                      separatorBuilder: (_, _) => SizedBox(height: 14.h),
+                      itemBuilder: (context, index) {
+                        final board = filteredBoards[index];
+                        return TaskBoardCard(
+                          board: board,
+                          onTap: () {
+                            // Future navigation to board details screen
+                          },
+                        );
+                      },
+                    ),
             ),
           ],
         ),

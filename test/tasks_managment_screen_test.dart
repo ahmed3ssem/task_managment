@@ -47,7 +47,10 @@ void main() {
 
     // Scroll horizontal ListView to verify remaining items
     final scrollable = find.descendant(
-      of: find.byType(ListView),
+      of: find.byWidgetPredicate(
+        (widget) =>
+            widget is ListView && widget.scrollDirection == Axis.horizontal,
+      ),
       matching: find.byType(Scrollable),
     );
     await tester.scrollUntilVisible(
@@ -93,7 +96,7 @@ void main() {
     expect(find.text(LocalStrings.filter), findsOneWidget);
     expect(find.text(LocalStrings.createBoard), findsOneWidget);
     expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.space_dashboard_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.space_dashboard_outlined), findsWidgets);
 
     // Tap Filter and Create Board buttons
     await tester.tap(find.text(LocalStrings.filter));
@@ -101,5 +104,10 @@ void main() {
 
     await tester.tap(find.text(LocalStrings.createBoard));
     await tester.pumpAndSettle();
+
+    // Verify TaskBoardCard elements
+    expect(find.text('Board Name'), findsOneWidget);
+    expect(find.text(LocalStrings.owner), findsWidgets);
+    expect(find.text('+6'), findsOneWidget);
   });
 }

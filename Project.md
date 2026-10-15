@@ -103,9 +103,21 @@ This document captures the current architecture, implemented features, design de
   2. **Create Board Button**:
      - Background: Brand primary green (`AppColors.primaryColor`, `#568F22`) specifically selected to match the active cell in `TaskCategoryCell`.
      - Outline: `AppColors.primaryColor` with primary shadow (`alpha: 0.25`, blur: 12).
-     - Icon: Board/Kanban icon (`Icons.space_dashboard_outlined`), `20.sp`, color `#FFFFFF`.
      - Label: Localized `LocalStrings.createBoard` ("Create Board" / "إنشاء لوحة"), `16.sp`, `FontWeight.w600`, color `#FFFFFF`.
      - Future behavior: Opens Create Board bottom dialog modal.
+
+#### 4. `TaskBoardCard` (`lib/feature/tasks/presentation/widgets/task_board_card.dart`)
+- **Card Design for Task Boards**:
+  1. **Top Row**:
+     - Leading Icon: 40x40 container holding `Icons.space_dashboard_outlined` (matching the Create Board button icon) in primary brand green (`#568F22`).
+     - Board Name: `16.sp`, `FontWeight.w600`, adaptive dark/light color.
+     - Department: "Department: " in muted grey with the department name styled in **brand primary green** (`#568F22`, `FontWeight.w600`).
+     - Role Badge: Polished warm amber pill (`#FFF5EB` background, `#E9780F` text, `4.r` border radius) replacing the dull grey background from Figma.
+  2. **Middle Section**:
+     - Board description with 2-line max and clean typography (`13.sp`, `0xFF6B7280`).
+  3. **Bottom Row**:
+     - Formatted creation date (`LocalStrings.creationDate` + date string).
+     - Overlapping circular member avatar stack (24x24 each) with a clean `+N` additional members counter.
 
 ---
 
@@ -114,6 +126,11 @@ This document captures the current architecture, implemented features, design de
   - Fields: `String id`, `String title`, `int count`.
   - Extends `Equatable`.
   - Includes `fromMap` factory ready for backend/Firebase mapping.
+
+- **`TaskBoardModel` (`lib/feature/tasks/data/models/task_board_model.dart`)**:
+  - Fields: `String id`, `String name`, `String department`, `String description`, `String creationDate`, `String role`, `List<String> memberAvatars`, `int additionalMembersCount`.
+  - Extends `Equatable`.
+  - Includes `fromMap` and `toMap` for Firebase Firestore / API integration.
 
 ---
 
@@ -132,29 +149,27 @@ This document captures the current architecture, implemented features, design de
   - `search`: `"Search"` / `"بحث"`
   - `filter`: `"Filter"` / `"تصفية"`
   - `createBoard`: `"Create Board"` / `"إنشاء لوحة"`
+  - `department`: `"Department: "` / `"القسم: "`
+  - `creationDate`: `"Creation Date: "` / `"تاريخ الإنشاء: "`
+  - `owner`: `"Owner"` / `"المالك"`
 
 ---
 
 ## 4. Tests Status
 - **`test/widget_test.dart`**: Tests `TaskCategoryCell` rendering and tap interaction.
-- **`test/tasks_managment_screen_test.dart`**: Tests `TasksManagmentScreen` AppBar, horizontal category scrolling, search input typing, close button appearance, reset on clear, and action buttons row (Filter and Create Board).
+- **`test/tasks_managment_screen_test.dart`**: Tests `TasksManagmentScreen` AppBar, horizontal category scrolling, search input typing, close button appearance, reset on clear, action buttons row (Filter and Create Board), and TaskBoardCard list rendering.
 - All tests pass (`flutter test`: 2 passed).
 
 ---
 
 ## 5. Next Steps for Upcoming Implementation
 
-1. **Tasks List UI**:
-   - The user will provide the Figma design for the Task items / cards / list under the action buttons row.
-2. **Bottom Sheet Dialogs**:
+1. **Bottom Sheet Dialogs**:
    - Filter bottom dialog (when Filter button is tapped).
    - Create Board bottom dialog (when Create Board button is tapped).
-3. **Search by `task_name`**:
-   - When the user types in `TaskSearchBar`, filter the task list where `task.taskName.toLowerCase().contains(query.toLowerCase())`.
-   - When user taps clear ('X') or text is empty, restore the unfiltered list.
-4. **Category Filtering**:
-   - Tapping any category tab filters tasks matching that category's `id` (or all if `id == 'all'`).
-5. **Firebase Integration**:
+2. **Board Details / Tasks View**:
+   - Tapping any `TaskBoardCard` opens the board's task items (Kanban / task list).
+3. **Firebase Integration**:
    - The project has `firebase.json` and Firebase options.
-   - Attach tasks fetching/syncing to Firebase Firestore.
+   - Attach boards & tasks fetching/syncing to Firebase Firestore.
    - Connect through Clean Architecture: `TasksRemoteDataSource` -> `TasksRepository` -> `GetTasksUseCase` -> `TasksCubit`.
