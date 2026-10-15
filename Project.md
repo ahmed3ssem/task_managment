@@ -41,11 +41,14 @@ This document captures the current architecture, implemented features, design de
    - Encapsulates board creation logic: `call(TaskBoardModel params)`.
 3. **`usecases/get_boards_usecase.dart`**:
    - Encapsulates board retrieval logic: `call(NoParams params)`.
+4. **`usecases/get_boards_stream_usecase.dart`**:
+   - Subscribes to real-time boards stream: `call()`.
 
 ### B. Data Layer (`lib/feature/tasks/data/`)
 1. **`datasources/tasks_remote_data_source.dart`**:
    - `TasksRemoteDataSourceImpl`: Connects directly to `FirebaseDatabase.instance.ref('boards')`.
    - Generates unique push IDs and saves `{id, name, department, description, creationDate, role, memberAvatars, additionalMembersCount}` into Firebase RTDB.
+   - Parses both `Map` and `List` snapshots safely and orders newest boards first.
 2. **`repositories/tasks_repository_impl.dart`**:
    - Connects `TasksRemoteDataSource` with `NetworkInfo`.
    - Catches exceptions and returns clean `Either<Failures, T>`.
@@ -60,26 +63,28 @@ This document captures the current architecture, implemented features, design de
    - `CreateBoardLoading`, `CreateBoardSuccess`, `CreateBoardError`
    - `TasksLoading`, `TasksLoaded`, `TasksError`
 2. **`cubit/tasks_cubit.dart`**:
-   - Formats creation date via `DateFormat('d MMM yyyy')`.
-   - Dispatches `createBoardUseCase(board)` and manages loading/success/error states.
+   - `watchBoards()`: Subscribes to real-time boards stream from Firebase RTDB.
+   - `getBoards()`: One-off fetch for pull-to-refresh.
+   - `createBoard()`: Persists board into Firebase RTDB and triggers real-time updates.
 3. **`widgets/create_board_bottom_sheet.dart`**:
    - **Rounded Top Corners**: `20.r` rounded top corners with subtle elevation and top drag indicator.
    - **Form Fields**:
      - **Board Name**: `TextFormField` (8.r border radius, non-empty validation via `LocalStrings.nameRequired`).
      - **Board Department**: `DropdownButtonFormField<String>` with strictly `"Marketing"` option (validated selection via `LocalStrings.departmentRequired`).
-     - **Board Description**: Multiline `TextFormField` (3 to 5 lines, 8.r border radius, non-empty validation via `LocalStrings.descriptionRequired`).
+     - **Board Description**: Multiline `TextFormField` (top-aligned prefix icon, 8.r border radius, non-empty validation via `LocalStrings.descriptionRequired`).
    - **Save CTA**: Styled in brand green (`AppColors.primaryColor`), validates form, triggers `TasksCubit.createBoard(...)`, displays loading spinner, shows floating SnackBar on success, and dismisses modal.
 4. **`screen/tasks_managment_screen.dart`**:
-   - Provides `TasksCubit` via `BlocProvider`.
-   - Connects `TaskActionButtonsRow.onCreateBoardTap` to `CreateBoardBottomSheet.show(...)`.
-   - Prepend new boards dynamically into the board list upon creation.
+   - Provides `TasksCubit` via `BlocProvider` and starts `watchBoards()`.
+   - **Dynamic `TaskCategoryCell` counts**: Computes "All" total count and department counts ("Marketing", "Software", "Finance", "Research & Development") in real time.
+   - **Empty State**: Shows dedicated empty state with `"Nothing to show yet"` (`LocalStrings.nothingToShowYet`) when data is empty.
+   - Pull-to-refresh integration via `RefreshIndicator`.
 
 ---
 
 ## 4. Reusable UI Components
 
 1. **`TaskCategoryCell` (`lib/feature/tasks/presentation/widgets/task_category_cell.dart`)**:
-   - 45x45 square badge with category title.
+   - 45x45 square badge with category title and dynamic item count.
    - Selected: Brand green `#568F22` background, white text.
    - Unselected: White / Dark Card with subtle border and muted text.
 2. **`TaskSearchBar` (`lib/feature/tasks/presentation/widgets/task_search_bar.dart`)**:
@@ -95,9 +100,10 @@ This document captures the current architecture, implemented features, design de
 ## 5. Dependency Injection (`lib/injection_container.dart`)
 
 All feature dependencies are registered via GetIt:
-- `sl.registerFactory<TasksCubit>(() => TasksCubit(createBoardUseCase: sl(), getBoardsUseCase: sl()));`
+- `sl.registerFactory<TasksCubit>(() => TasksCubit(createBoardUseCase: sl(), getBoardsUseCase: sl(), getBoardsStreamUseCase: sl()));`
 - `sl.registerLazySingleton<CreateBoardUseCase>(() => CreateBoardUseCase(repository: sl()));`
 - `sl.registerLazySingleton<GetBoardsUseCase>(() => GetBoardsUseCase(repository: sl()));`
+- `sl.registerLazySingleton<GetBoardsStreamUseCase>(() => GetBoardsStreamUseCase(repository: sl()));`
 - `sl.registerLazySingleton<TasksRepository>(() => TasksRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()));`
 - `sl.registerLazySingleton<TasksRemoteDataSource>(() => TasksRemoteDataSourceImpl(database: sl()));`
 - `sl.registerLazySingleton<FirebaseDatabase>(() => FirebaseDatabase.instance);`

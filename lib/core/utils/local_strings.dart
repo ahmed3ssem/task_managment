@@ -49,9 +49,19 @@ class LocalStrings {
   static String get descriptionRequired => 'descriptionRequired'.tr;
   static String get boardCreatedSuccessfully => 'boardCreatedSuccessfully'.tr;
   static String get nothingToShowYet => 'nothingToShowYet'.tr;
+  static String get owningStatus => 'owningStatus'.tr;
+  static String get reset => 'reset'.tr;
+  static String get apply => 'apply'.tr;
+  static String get selectDate => 'selectDate'.tr;
+  static String get selectAtLeastOneFilter => 'selectAtLeastOneFilter'.tr;
 }
 
 mixin AppLocale {
+  static const String owningStatus = 'owningStatus';
+  static const String reset = 'reset';
+  static const String apply = 'apply';
+  static const String selectDate = 'selectDate';
+  static const String selectAtLeastOneFilter = 'selectAtLeastOneFilter';
   static const String nothingToShowYet = 'nothingToShowYet';
   static const String noData = 'noData';
   static const String english = 'english';
@@ -126,10 +136,20 @@ mixin AppLocale {
     descriptionRequired: "الوصف مطلوب",
     boardCreatedSuccessfully: "تم إنشاء اللوحة بنجاح",
     nothingToShowYet: "لا يوجد شيء لعرضه حتى الآن",
+    owningStatus: "حالة الملكية",
+    reset: "إعادة ضبط",
+    apply: "تطبيق",
+    selectDate: "اختر التاريخ",
+    selectAtLeastOneFilter: "يرجى اختيار معيار تصفية واحد على الأقل",
   };
 
   static const Map<String, dynamic> EN = {
     nothingToShowYet: "Nothing to show yet",
+    owningStatus: "Owning Status",
+    reset: "Reset",
+    apply: "Apply",
+    selectDate: "Select Date",
+    selectAtLeastOneFilter: "Please select at least one filter",
     noData: "There is no data",
     english: "Proceed With English",
     arabic: "Proceed With Arabic",

@@ -49,20 +49,7 @@ class TasksRemoteDataSourceImpl implements TasksRemoteDataSource {
       if (!snapshot.exists || snapshot.value == null) {
         return [];
       }
-
-      final dynamic rawData = snapshot.value;
-      final List<TaskBoardModel> boards = [];
-
-      if (rawData is Map) {
-        rawData.forEach((key, value) {
-          if (value is Map) {
-            final map = Map<String, dynamic>.from(value);
-            boards.add(TaskBoardModel.fromMap(map, id: key.toString()));
-          }
-        });
-      }
-
-      return boards;
+      return _parseBoards(snapshot.value);
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -75,20 +62,33 @@ class TasksRemoteDataSourceImpl implements TasksRemoteDataSource {
       if (!snapshot.exists || snapshot.value == null) {
         return <TaskBoardModel>[];
       }
-
-      final dynamic rawData = snapshot.value;
-      final List<TaskBoardModel> boards = [];
-
-      if (rawData is Map) {
-        rawData.forEach((key, value) {
-          if (value is Map) {
-            final map = Map<String, dynamic>.from(value);
-            boards.add(TaskBoardModel.fromMap(map, id: key.toString()));
-          }
-        });
-      }
-
-      return boards;
+      return _parseBoards(snapshot.value);
     });
+  }
+
+  /// Parses raw snapshot value into a `List<TaskBoardModel>` safely.
+  List<TaskBoardModel> _parseBoards(dynamic rawData) {
+    if (rawData == null) return [];
+    final List<TaskBoardModel> boards = [];
+
+    if (rawData is Map) {
+      rawData.forEach((key, value) {
+        if (value is Map) {
+          final map = Map<String, dynamic>.from(value);
+          boards.add(TaskBoardModel.fromMap(map, id: key.toString()));
+        }
+      });
+    } else if (rawData is List) {
+      for (int i = 0; i < rawData.length; i++) {
+        final value = rawData[i];
+        if (value is Map) {
+          final map = Map<String, dynamic>.from(value);
+          boards.add(TaskBoardModel.fromMap(map, id: i.toString()));
+        }
+      }
+    }
+
+    // Newest boards first
+    return boards.reversed.toList();
   }
 }

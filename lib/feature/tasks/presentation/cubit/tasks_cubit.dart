@@ -2,14 +2,16 @@
 // File: tasks_cubit.dart
 // Description: Presentation Cubit managing task boards state and actions.
 //              Handles board creation, form persistence to Firebase RTDB,
-//              and list loading/refreshing.
+//              real-time synchronization, and list loading/refreshing.
 // ============================================================================
 
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/usecase/use_case.dart';
 import '../../data/models/task_board_model.dart';
 import '../../domain/usecases/create_board_usecase.dart';
+import '../../domain/usecases/get_boards_stream_usecase.dart';
 import '../../domain/usecases/get_boards_usecase.dart';
 import 'tasks_state.dart';
 
@@ -17,9 +19,35 @@ import 'tasks_state.dart';
 class TasksCubit extends Cubit<TasksState> {
   final CreateBoardUseCase createBoardUseCase;
   final GetBoardsUseCase getBoardsUseCase;
+  final GetBoardsStreamUseCase? getBoardsStreamUseCase;
 
-  TasksCubit({required this.createBoardUseCase, required this.getBoardsUseCase})
-    : super(const TasksInitial());
+  StreamSubscription<List<TaskBoardModel>>? _boardsSubscription;
+
+  TasksCubit({
+    required this.createBoardUseCase,
+    required this.getBoardsUseCase,
+    this.getBoardsStreamUseCase,
+  }) : super(const TasksInitial());
+
+  /// Subscribes to real-time boards stream from Firebase Realtime Database.
+  /// Emits [TasksLoading] initially, followed by continuous [TasksLoaded] updates.
+  void watchBoards() {
+    emit(const TasksLoading());
+    _boardsSubscription?.cancel();
+
+    if (getBoardsStreamUseCase != null) {
+      _boardsSubscription = getBoardsStreamUseCase!().listen(
+        (boards) {
+          emit(TasksLoaded(boards: boards));
+        },
+        onError: (error) {
+          emit(TasksError(message: error.toString()));
+        },
+      );
+    } else {
+      getBoards();
+    }
+  }
 
   /// Creates a new task board and saves it to Firebase Realtime Database.
   ///
@@ -54,13 +82,16 @@ class TasksCubit extends Cubit<TasksState> {
 
     final result = await createBoardUseCase(newBoard);
 
-    result.fold(
-      (failure) => emit(CreateBoardError(message: failure.msg)),
-      (_) => emit(CreateBoardSuccess(board: newBoard)),
-    );
+    result.fold((failure) => emit(CreateBoardError(message: failure.msg)), (_) {
+      emit(CreateBoardSuccess(board: newBoard));
+      // Refresh one-off if not actively listening to stream
+      if (_boardsSubscription == null) {
+        getBoards();
+      }
+    });
   }
 
-  /// Fetches all task boards from the remote data source.
+  /// Fetches all task boards from the remote data source once.
   Future<void> getBoards() async {
     emit(const TasksLoading());
 
@@ -70,5 +101,11 @@ class TasksCubit extends Cubit<TasksState> {
       (failure) => emit(TasksError(message: failure.msg)),
       (boards) => emit(TasksLoaded(boards: boards)),
     );
+  }
+
+  @override
+  Future<void> close() {
+    _boardsSubscription?.cancel();
+    return super.close();
   }
 }

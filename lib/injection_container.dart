@@ -17,6 +17,7 @@ import 'feature/tasks/data/datasources/tasks_remote_data_source.dart';
 import 'feature/tasks/data/repositories/tasks_repository_impl.dart';
 import 'feature/tasks/domain/repositories/tasks_repository.dart';
 import 'feature/tasks/domain/usecases/create_board_usecase.dart';
+import 'feature/tasks/domain/usecases/get_boards_stream_usecase.dart';
 import 'feature/tasks/domain/usecases/get_boards_usecase.dart';
 import 'feature/tasks/presentation/cubit/tasks_cubit.dart';
 
@@ -26,7 +27,11 @@ Future<void> init() async {
   // Features - Tasks
   // Blocs
   sl.registerFactory<TasksCubit>(
-    () => TasksCubit(createBoardUseCase: sl(), getBoardsUseCase: sl()),
+    () => TasksCubit(
+      createBoardUseCase: sl(),
+      getBoardsUseCase: sl(),
+      getBoardsStreamUseCase: sl(),
+    ),
   );
 
   // UseCases
@@ -35,6 +40,9 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<GetBoardsUseCase>(
     () => GetBoardsUseCase(repository: sl()),
+  );
+  sl.registerLazySingleton<GetBoardsStreamUseCase>(
+    () => GetBoardsStreamUseCase(repository: sl()),
   );
 
   // Repository

@@ -12,9 +12,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_project_structure/config/PrefHelper/prefs.dart';
 import 'package:flutter_project_structure/core/error/failures.dart';
 import 'package:flutter_project_structure/core/utils/local_strings.dart';
+import 'dart:async';
 import 'package:flutter_project_structure/feature/tasks/data/models/task_board_model.dart';
 import 'package:flutter_project_structure/feature/tasks/domain/repositories/tasks_repository.dart';
 import 'package:flutter_project_structure/feature/tasks/domain/usecases/create_board_usecase.dart';
+import 'package:flutter_project_structure/feature/tasks/domain/usecases/get_boards_stream_usecase.dart';
 import 'package:flutter_project_structure/feature/tasks/domain/usecases/get_boards_usecase.dart';
 import 'package:flutter_project_structure/feature/tasks/presentation/cubit/tasks_cubit.dart';
 import 'package:flutter_project_structure/feature/tasks/presentation/cubit/tasks_state.dart';
@@ -24,6 +26,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class MockTasksRepository implements TasksRepository {
   final List<TaskBoardModel> savedBoards = [];
+  final StreamController<List<TaskBoardModel>> _controller =
+      StreamController<List<TaskBoardModel>>.broadcast();
   bool shouldFail = false;
 
   @override
@@ -31,7 +35,8 @@ class MockTasksRepository implements TasksRepository {
     if (shouldFail) {
       return const Left(ServerFailure(msg: 'Firebase RTDB connection error'));
     }
-    savedBoards.add(board);
+    savedBoards.insert(0, board);
+    _controller.add(List.unmodifiable(savedBoards));
     return const Right(null);
   }
 
@@ -40,12 +45,13 @@ class MockTasksRepository implements TasksRepository {
     if (shouldFail) {
       return const Left(ServerFailure(msg: 'Failed to fetch boards'));
     }
-    return Right(savedBoards);
+    return Right(List.unmodifiable(savedBoards));
   }
 
   @override
   Stream<List<TaskBoardModel>> getBoardsStream() async* {
-    yield savedBoards;
+    yield List.unmodifiable(savedBoards);
+    yield* _controller.stream;
   }
 }
 
@@ -53,6 +59,7 @@ void main() {
   late MockTasksRepository repository;
   late CreateBoardUseCase createBoardUseCase;
   late GetBoardsUseCase getBoardsUseCase;
+  late GetBoardsStreamUseCase getBoardsStreamUseCase;
   late TasksCubit cubit;
 
   setUp(() async {
@@ -70,9 +77,11 @@ void main() {
     repository = MockTasksRepository();
     createBoardUseCase = CreateBoardUseCase(repository: repository);
     getBoardsUseCase = GetBoardsUseCase(repository: repository);
+    getBoardsStreamUseCase = GetBoardsStreamUseCase(repository: repository);
     cubit = TasksCubit(
       createBoardUseCase: createBoardUseCase,
       getBoardsUseCase: getBoardsUseCase,
+      getBoardsStreamUseCase: getBoardsStreamUseCase,
     );
   });
 
@@ -143,6 +152,9 @@ void main() {
         );
 
         await tester.pumpAndSettle();
+
+        // Verify initial empty state ("Nothing to show yet")
+        expect(find.text(LocalStrings.nothingToShowYet), findsOneWidget);
 
         // Tap Create Board button
         final createBoardBtn = find.text(LocalStrings.createBoard);
