@@ -43,9 +43,7 @@ class _MyAppState extends State<MyApp> {
             return MediaQuery(
               data: MediaQuery.of(
                 context,
-              ).copyWith(
-                textScaler: const TextScaler.linear(1.0),
-              ),
+              ).copyWith(textScaler: const TextScaler.linear(1.0)),
               child: MaterialApp(
                 navigatorKey: navigatorKey,
                 supportedLocales: _localization.supportedLocales,

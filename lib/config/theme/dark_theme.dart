@@ -36,9 +36,7 @@ class DarkTheme {
       elevation: 1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppConstance.radiusTiny),
-        side: const BorderSide(
-          color: AppColors.darkBorder,
-        ),
+        side: const BorderSide(color: AppColors.darkBorder),
       ),
     ),
 
@@ -48,31 +46,22 @@ class DarkTheme {
 
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppConstance.radiusTiny),
-        borderSide: const BorderSide(
-          color: AppColors.darkBorder,
-        ),
+        borderSide: const BorderSide(color: AppColors.darkBorder),
       ),
 
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppConstance.radiusTiny),
-        borderSide: const BorderSide(
-          color: AppColors.darkBorder,
-        ),
+        borderSide: const BorderSide(color: AppColors.darkBorder),
       ),
 
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppConstance.radiusTiny),
-        borderSide: const BorderSide(
-          color: AppColors.primaryColor,
-          width: 1.5,
-        ),
+        borderSide: const BorderSide(color: AppColors.primaryColor, width: 1.5),
       ),
 
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppConstance.radiusTiny),
-        borderSide: const BorderSide(
-          color: AppColors.darkError,
-        ),
+        borderSide: const BorderSide(color: AppColors.darkError),
       ),
     ),
 
@@ -89,15 +78,9 @@ class DarkTheme {
         color: AppColors.darkTextPrimary,
         fontWeight: FontWeight.w600,
       ),
-      bodyLarge: TextStyle(
-        color: AppColors.darkTextPrimary,
-      ),
-      bodyMedium: TextStyle(
-        color: AppColors.darkTextPrimary,
-      ),
-      bodySmall: TextStyle(
-        color: AppColors.darkTextSecondary,
-      ),
+      bodyLarge: TextStyle(color: AppColors.darkTextPrimary),
+      bodyMedium: TextStyle(color: AppColors.darkTextPrimary),
+      bodySmall: TextStyle(color: AppColors.darkTextSecondary),
     ),
 
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -109,16 +92,12 @@ class DarkTheme {
           horizontal: 24,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            AppConstance.radiusTiny,
-          ),
+          borderRadius: BorderRadius.circular(AppConstance.radiusTiny),
         ),
       ),
     ),
 
-    iconTheme: const IconThemeData(
-      color: AppColors.darkTextPrimary,
-    ),
+    iconTheme: const IconThemeData(color: AppColors.darkTextPrimary),
 
     dividerTheme: const DividerThemeData(
       color: AppColors.darkBorder,

@@ -30,6 +30,11 @@ class AppColors {
   static const Color hyperLink = Color(0xFF004CDA);
   static const Color redAlert = Color(0xFFFF0000);
 
+  // Figma Task Management Colors
+  static const Color textDark = Color(0xFF2D2D2D);
+  static const Color textMuted = Color(0xFF797979);
+  static const Color badgeSelected = Color(0xFF9E9E9E);
+
   // ----------------------------
   // Dark Theme Colors
   // ----------------------------
@@ -46,8 +51,8 @@ class AppColors {
   static const Color darkError = Color(0xFFCF6679);
 
   // ----------------------------
-// Light Theme Colors
-// ----------------------------
+  // Light Theme Colors
+  // ----------------------------
 
   static const Color lightBackground = Color(0xFFF6F7FB);
   static const Color lightSurface = Color(0xFFFFFFFF);

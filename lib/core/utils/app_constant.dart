@@ -13,6 +13,4 @@ class AppConstance {
   static const double textFieldH = 18;
 
   static const String currentVersion = "1.0.0";
-
-
 }

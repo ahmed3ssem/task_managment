@@ -34,13 +34,8 @@ void main() async {
   Bloc.observer = AppBlocObserver();
   runApp(
     MultiBlocProvider(
-      providers: [
-        BlocProvider<ThemeCubit>(
-          create: (_) => di.sl<ThemeCubit>(),
-        ),
-      ],
+      providers: [BlocProvider<ThemeCubit>(create: (_) => di.sl<ThemeCubit>())],
       child: const MyApp(),
     ),
   );
-
 }

@@ -25,6 +25,13 @@ class LocalStrings {
   static String get pleaseWait => 'pleaseWait'.tr;
   static String get ok => 'ok'.tr;
   static String get skip => 'skip'.tr;
+  static String get taskManagement => 'taskManagement'.tr;
+  static String get all => 'all'.tr;
+  static String get marketing => 'marketing'.tr;
+  static String get software => 'software'.tr;
+  static String get finance => 'finance'.tr;
+  static String get researchAndDevelopment => 'researchAndDevelopment'.tr;
+  static String get search => 'search'.tr;
 }
 
 mixin AppLocale {
@@ -40,6 +47,13 @@ mixin AppLocale {
   static const String pleaseWait = 'pleaseWait';
   static const String ok = 'ok';
   static const String skip = 'skip';
+  static const String taskManagement = 'taskManagement';
+  static const String all = 'all';
+  static const String marketing = 'marketing';
+  static const String software = 'software';
+  static const String finance = 'finance';
+  static const String researchAndDevelopment = 'researchAndDevelopment';
+  static const String search = 'search';
 
   static const Map<String, dynamic> AR = {
     noData: "لا يوجد بيانات",
@@ -54,6 +68,13 @@ mixin AppLocale {
     pleaseWait: "يرجى الانتظار",
     ok: "حسناً",
     skip: "تخطي",
+    taskManagement: "إدارة المهام",
+    all: "الكل",
+    marketing: "التسويق",
+    software: "البرمجيات",
+    finance: "المالية",
+    researchAndDevelopment: "البحث والتطوير",
+    search: "بحث",
   };
 
   static const Map<String, dynamic> EN = {
@@ -69,5 +90,12 @@ mixin AppLocale {
     pleaseWait: "Please wait",
     ok: "OK",
     skip: "Skip",
+    taskManagement: "Task Management",
+    all: "All",
+    marketing: "Marketing",
+    software: "Software",
+    finance: "Finance",
+    researchAndDevelopment: "Research and Development",
+    search: "Search",
   };
 }

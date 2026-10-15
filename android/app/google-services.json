@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "913981907297",
+    "firebase_url": "https://tasks-managment-d2298-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "tasks-managment-d2298",
+    "storage_bucket": "tasks-managment-d2298.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:913981907297:android:24b4f1e7b2a6816c142520",
+        "android_client_info": {
+          "package_name": "com.example.task"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBE0g27pysT-C-_wNG6qzWa1LCpxhtNzCw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

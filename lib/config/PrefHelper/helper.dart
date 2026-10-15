@@ -7,7 +7,12 @@ class Helper {
     final localization = FlutterLocalization.instance;
     if (Prefs.isContain(AppStrings.local)) {
       String savedLocale = Prefs.getString(AppStrings.local);
-      String langCode = (savedLocale == AppStrings.enCountryCode || savedLocale == 'en' || savedLocale == 'EN') ? 'en' : 'ar';
+      String langCode =
+          (savedLocale == AppStrings.enCountryCode ||
+              savedLocale == 'en' ||
+              savedLocale == 'EN')
+          ? 'en'
+          : 'ar';
       localization.translate(langCode);
     } else {
       // Default to English if no language is chosen
@@ -20,7 +25,9 @@ class Helper {
   static Future<void> setLanguage(String langCode) async {
     final localization = FlutterLocalization.instance;
     localization.translate(langCode);
-    String countryCode = (langCode == 'en') ? AppStrings.enCountryCode : AppStrings.arCountryCode;
+    String countryCode = (langCode == 'en')
+        ? AppStrings.enCountryCode
+        : AppStrings.arCountryCode;
     await setDefaultLang(countryCode);
   }
 
