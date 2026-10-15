@@ -15,6 +15,7 @@ import '../../../../core/utils/local_strings.dart';
 import '../../data/models/task_category_model.dart';
 import '../widgets/task_category_cell.dart';
 import '../widgets/task_search_bar.dart';
+import '../widgets/task_action_buttons_row.dart';
 
 /// [TasksManagmentScreen] is the entry view for managing and tracking tasks.
 ///
@@ -176,13 +177,28 @@ class _TasksManagmentScreenState extends State<TasksManagmentScreen> {
 
             SizedBox(height: 18.h),
 
-            // Search Bar Component (8px rounded corners, search icon, clear button)
+            // Search Bar Component (15px rounded corners, search icon, clear button)
             Padding(
               padding: EdgeInsetsDirectional.symmetric(horizontal: 24.w),
               child: TaskSearchBar(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
                 onClear: _onSearchCleared,
+              ),
+            ),
+
+            SizedBox(height: 18.h),
+
+            // Action Buttons Row: Filter and Create Board
+            Padding(
+              padding: EdgeInsetsDirectional.symmetric(horizontal: 24.w),
+              child: TaskActionButtonsRow(
+                onFilterTap: () {
+                  // Design only now: opens Filter bottom dialog later
+                },
+                onCreateBoardTap: () {
+                  // Design only now: opens Create Board bottom dialog later
+                },
               ),
             ),
           ],

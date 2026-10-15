@@ -32,6 +32,8 @@ class LocalStrings {
   static String get finance => 'finance'.tr;
   static String get researchAndDevelopment => 'researchAndDevelopment'.tr;
   static String get search => 'search'.tr;
+  static String get filter => 'filter'.tr;
+  static String get createBoard => 'createBoard'.tr;
 }
 
 mixin AppLocale {
@@ -54,6 +56,8 @@ mixin AppLocale {
   static const String finance = 'finance';
   static const String researchAndDevelopment = 'researchAndDevelopment';
   static const String search = 'search';
+  static const String filter = 'filter';
+  static const String createBoard = 'createBoard';
 
   static const Map<String, dynamic> AR = {
     noData: "لا يوجد بيانات",
@@ -75,6 +79,8 @@ mixin AppLocale {
     finance: "المالية",
     researchAndDevelopment: "البحث والتطوير",
     search: "بحث",
+    filter: "تصفية",
+    createBoard: "إنشاء لوحة",
   };
 
   static const Map<String, dynamic> EN = {
@@ -97,5 +103,7 @@ mixin AppLocale {
     finance: "Finance",
     researchAndDevelopment: "Research and Development",
     search: "Search",
+    filter: "Filter",
+    createBoard: "Create Board",
   };
 }

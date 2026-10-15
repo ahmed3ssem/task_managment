@@ -88,5 +88,18 @@ void main() {
 
     expect(find.text('Design UI'), findsNothing);
     expect(find.byIcon(Icons.close_rounded), findsNothing);
+
+    // Verify Action Buttons
+    expect(find.text(LocalStrings.filter), findsOneWidget);
+    expect(find.text(LocalStrings.createBoard), findsOneWidget);
+    expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.space_dashboard_outlined), findsOneWidget);
+
+    // Tap Filter and Create Board buttons
+    await tester.tap(find.text(LocalStrings.filter));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(LocalStrings.createBoard));
+    await tester.pumpAndSettle();
   });
 }
